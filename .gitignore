@@ -1,0 +1,10 @@
+data/raw/
+outputs/
+dist/
+build/
+*.tif
+*.tiff
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
