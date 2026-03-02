@@ -1,0 +1,7 @@
+napari[all]
+PyQt5
+opencv-python
+numpy
+pandas
+tifffile
+imagecodecs
