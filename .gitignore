@@ -2,8 +2,11 @@ data/raw/
 outputs/
 dist/
 build/
+# Ignore raw/generated TIFFs but keep example images
 *.tif
 *.tiff
+!data/examples/*.tif
+!data/examples/*.tiff
 .venv/
 __pycache__/
 *.pyc

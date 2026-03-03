@@ -1,0 +1,12 @@
+# CrabMeasure configuration
+# Edit this file to change defaults without touching source code.
+
+# Known length of the scale bar in the micrometer calibration image (mm).
+bar_length_mm: 2.0
+
+# The micrometer image is identified by this substring in its filename
+# (case-insensitive).
+micrometer_keyword: micrometer
+
+# Which lateral spine(s) to measure: LEFT, RIGHT, or BOTH (averages both sides).
+sl_mode: LEFT
