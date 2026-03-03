@@ -38,7 +38,11 @@ from qtpy.QtWidgets import (
 
 from src.config import Config, load_config, save_config
 from src.measures import compute_measurements, save_qc_overlay
-from src.pipeline import estimate_px_per_mm_from_micrometer, segment_carapace
+from src.pipeline import (
+    auto_landmarks,
+    estimate_px_per_mm_from_micrometer,
+    segment_carapace,
+)
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -62,6 +66,9 @@ CLICK_PROTOCOL_BOTH = CLICK_PROTOCOL_BASE + [
     ("SL_B2", "SL2: 2nd spine base (other side)"),
     ("SL_T2", "SL2: 2nd spine tip (other side)"),
 ]
+
+# Colour used for auto-detected points (gold = visually distinct from all measurement colours)
+_AUTO_COLOR = "gold"
 
 # napari colour per point name
 _PT_COLOR = {
@@ -167,6 +174,9 @@ class CrabMeasureApp:
         self._pts_layer    = None
         self._shapes_layer = None
         self._prev_n_pts: int = 0
+
+        # Names of clicks that were placed automatically (not by the user)
+        self._auto_clicks: set[str] = set()
 
         self._panel: "ControlPanel | None" = None
 
@@ -372,12 +382,50 @@ class CrabMeasureApp:
         self._pts_layer.mode = "add"
         self._pts_layer.events.data.connect(self._on_pts_data_changed)
 
+        # ── Auto-detect CW and CL ──────────────────────────────────────────────
+        self._auto_clicks = set()
+        try:
+            auto = auto_landmarks(mask)
+            initial_pts: list[list[float]] = []
+            for name, _ in self.protocol:
+                if name in auto:
+                    r, c = auto[name]
+                    self.clicks[name] = (r, c)
+                    self._auto_clicks.add(name)
+                    initial_pts.append([float(r), float(c)])
+                else:
+                    break   # stop at first gap – keeps protocol order intact
+            if initial_pts:
+                # Set _prev_n_pts BEFORE writing .data so the event is a no-op
+                self._prev_n_pts = len(initial_pts)
+                self._pts_layer.data = np.array(initial_pts, dtype=float)
+                self._refresh_point_visuals()
+                self._update_lines()
+        except Exception:
+            pass   # auto-detection failure is non-fatal
+
         self.viewer.reset_view()
         self._panel.update_panel()
-        self._panel.set_status(
-            f"Image {self.current_idx + 1} / {len(self.carapace_images)}:  "
-            f"{img_path.name}"
-        )
+
+        # Build status message
+        auto_groups = []
+        if "CW_L" in self._auto_clicks and "CW_R" in self._auto_clicks:
+            auto_groups.append("CW")
+        if "CL_P" in self._auto_clicks and "CL_A" in self._auto_clicks:
+            auto_groups.append("CL")
+        n_remain = len(self.protocol) - len(self._auto_clicks)
+        if auto_groups:
+            self._panel.set_status(
+                f"Image {self.current_idx + 1}/{len(self.carapace_images)}: "
+                f"{img_path.name}\n"
+                f"Auto-detected: {' + '.join(auto_groups)} (gold). "
+                f"{n_remain} click{'s' if n_remain != 1 else ''} remaining."
+            )
+        else:
+            self._panel.set_status(
+                f"Image {self.current_idx + 1} / {len(self.carapace_images)}:  "
+                f"{img_path.name}"
+            )
 
     # ── Click capture ─────────────────────────────────────────────────────────
 
@@ -412,15 +460,15 @@ class CrabMeasureApp:
             return
 
         n = len(self._pts_layer.data)
-        colors = [
-            _PT_COLOR.get(self.protocol[i][0], "red") if i < len(self.protocol)
-            else "red"
-            for i in range(n)
-        ]
-        labels = [
-            self.protocol[i][0] if i < len(self.protocol) else ""
-            for i in range(n)
-        ]
+        colors = []
+        labels = []
+        for i in range(n):
+            name = self.protocol[i][0] if i < len(self.protocol) else ""
+            if name in self._auto_clicks:
+                colors.append(_AUTO_COLOR)
+            else:
+                colors.append(_PT_COLOR.get(name, "red"))
+            labels.append(name)
         try:
             self._pts_layer.face_color = colors
             self._pts_layer.text = {
@@ -549,6 +597,7 @@ class CrabMeasureApp:
 
     def clear_clicks(self) -> None:
         self.clicks = {}
+        self._auto_clicks = set()
         if self._pts_layer is not None:
             try:
                 self._pts_layer.data = np.empty((0, 2))
@@ -696,9 +745,13 @@ class ControlPanel(QWidget):
         n_clicked = len(app.clicks)
         for i, (name, desc) in enumerate(app.protocol):
             done    = name in app.clicks
+            is_auto = name in app._auto_clicks
             is_next = (i == n_clicked) and not done
             if done:
-                prefix, style = "✓", "color:#4caf50; font-size:10px;"
+                if is_auto:
+                    prefix, style = "✓A", "color:#FFC107; font-size:10px;"
+                else:
+                    prefix, style = "✓",  "color:#4caf50; font-size:10px;"
             elif is_next:
                 prefix, style = "→", "color:#ffeb3b; font-weight:bold; font-size:10px;"
             else:
