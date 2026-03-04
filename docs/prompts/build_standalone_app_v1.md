@@ -18,3 +18,7 @@ Produce a proposed workflow.
 - Assume only that Python is loaded on the machine.
 - Confirm that the user will be prompted to identify the location of the input images on the local macine, as well as the location of .csv output files.
 - Write a user's guide aimed at naive users and push it as a .pdf to the docs folder.
+
+# Fix/update User Manual
+- Page 3 and 4 of CrabMeasure_Users_Guide.pdf are blank or corrupted. Fix these.
+- Add a description of how 20 test images will be used in Phase 2 of the automation build-out.
