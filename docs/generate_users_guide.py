@@ -397,7 +397,7 @@ def build():
     story.append(step(3, 'Navigate to the project folder',
         'Type the command below and press Enter (adjust the path to match where you '
         'extracted the files):',
-        'CODE:cd C:\\Users\\YourName\\Documents\\carapace-measurement\\carapace-measurement'))
+        'CODE:cd C:\\Users\\YourName\\Documents\\carapace-measurement'))
 
     story.append(step(4, 'Create a virtual environment',
         'First, confirm Python is available by typing the command below and pressing Enter:',
@@ -452,7 +452,7 @@ def build():
 
     story.append(step(3, 'Navigate to the project folder',
         'Type the command below (adjust the path):',
-        'CODE:cd ~/Desktop/carapace-measurement/carapace-measurement'))
+        'CODE:cd ~/Desktop/carapace-measurement'))
 
     story.append(step(4, 'Create a virtual environment',
         'CODE:python3 -m venv .venv'))
