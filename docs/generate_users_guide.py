@@ -384,12 +384,14 @@ def build():
     story.append(Paragraph('<b>Step-by-step</b>', SUBH))
 
     story.append(step(1, 'Download the code',
-        'Go to the project repository page and click \u2018Download ZIP\u2019. '
-        'Save it to your Documents folder. Right-click the ZIP file and choose '
-        '\u2018Extract All\u2019. This creates a folder called carapace-measurement.'))
+        'Go to the project repository page. Click the green <b>Code</b> button, '
+        'then click \u2018Download ZIP\u2019. Save it to your Documents folder. '
+        'Right-click the ZIP file and choose \u2018Extract All\u2019. '
+        'This creates a folder called carapace-measurement.'))
 
     story.append(step(2, 'Open Command Prompt',
-        'Press the Windows key, type <b>cmd</b> and press Enter. '
+        'Click the <b>search icon</b> at the lower-left corner of the screen. '
+        'Type <b>cmd</b> in the search bar and press Enter. '
         'A black terminal window opens.'))
 
     story.append(step(3, 'Navigate to the project folder',
@@ -398,8 +400,11 @@ def build():
         'CODE:cd C:\\Users\\YourName\\Documents\\carapace-measurement\\carapace-measurement'))
 
     story.append(step(4, 'Create a virtual environment',
-        'Type the command below and press Enter:',
-        'CODE:python -m venv .venv',
+        'First, confirm Python is available by typing the command below and pressing Enter:',
+        'CODE:py -V',
+        'This should print a Python version number (e.g. <i>Python 3.11.0</i>). '
+        'Then create the virtual environment:',
+        'CODE:py -m venv .venv',
         'This creates a private Python environment for CrabMeasure.'))
 
     story.append(step(5, 'Activate the virtual environment',
